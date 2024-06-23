@@ -1,0 +1,42 @@
+# Cruise Problem
+
+Sbt version: "1.10.0"
+Scala version: "2.13.13"
+
+
+## Code Structure
+
+project/
+│
+├── build.sbt
+│
+├── README
+│
+├── src/
+│   ├── main/
+│   │   └── scala/
+│   │       └── com/
+│   │           └── tst/service
+│   │               ├── PriceService.scala
+│   │               └── PromotionService.scala
+│   │
+│   └── test/
+│       └── scala/
+│           └── com/
+│               └── tst/service
+│                   ├── PriceServiceSpec.scala
+│                   └── PromotionServiceSpec.scala
+│
+└── project/
+    └── build.properties
+
+
+
+## Test
+you can run test units in the following ways:
+
+run ``` sbt test ```
+
+or if you are using IntellJ IDEA you can go to each `*Spec` file and run each test file
+
+
