@@ -14,19 +14,19 @@ class PromotionService {
           !codeToPromotion(code).notCombinableWith.contains(promotion.code)
       }
 
-    def findSubSequences(promotions: Seq[Promotion], currentPromotion: Seq[String]): Seq[PromotionCombo] = {
+    def findSubSequences(promotions: Seq[Promotion], currentPromotionCodes: Seq[String]): Seq[PromotionCombo] = {
       if (promotions.isEmpty) {
-        Seq(PromotionCombo(currentPromotion))
+        Seq(PromotionCombo(currentPromotionCodes))
       } else {
         val promotion = promotions.head
         val restPromotions = promotions.tail
 
-        val combosWithCurrent = if (canCombine(currentPromotion, promotion)) {
-          findSubSequences(restPromotions, currentPromotion :+ promotion.code)
+        val combosWithCurrent = if (canCombine(currentPromotionCodes, promotion)) {
+          findSubSequences(restPromotions, currentPromotionCodes :+ promotion.code)
         } else {
           Seq.empty
         }
-        val combosWithoutCurrent = findSubSequences(restPromotions, currentPromotion)
+        val combosWithoutCurrent = findSubSequences(restPromotions, currentPromotionCodes)
 
         // Combine results from both branches
         combosWithCurrent ++ combosWithoutCurrent
