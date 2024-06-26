@@ -4,46 +4,44 @@ case class Promotion(code: String, notCombinableWith: Seq[String])
 case class PromotionCombo(promotionCodes: Seq[String])
 
 class PromotionService {
-  /** Get a Sequence of T and returns all subsequences.
-   * Note: Potentially this function can move to different utility class which will be used by whole application
-   * */
-  private def allSubsequences[T](seq: Seq[T]): Seq[Seq[T]] = {
-    @scala.annotation.tailrec
-    def helper(remaining: Seq[T], acc: Seq[Seq[T]]): Seq[Seq[T]] = {
-      if (remaining.isEmpty) acc
-      else {
-        val head = remaining.head
-        val newAcc = acc ++ acc.map(subseq => head +: subseq)
-        helper(remaining.tail, newAcc)
-      }
-    }
-
-    helper(seq, Seq(Seq.empty))
-  }
-
   def allCombinablePromotions(allPromotions: Seq[Promotion]): Seq[PromotionCombo] = {
 
-    def canCombine(promotions: Seq[Promotion]): Boolean = {
-      promotions.forall { promotion =>
-        promotions.forall { anotherPromotion =>
-          promotions == anotherPromotion || !promotion.notCombinableWith.contains(anotherPromotion.code)
+    val codeToPromotion = allPromotions.map(promotion => promotion.code -> promotion).toMap
+
+    def canCombine(promotionCodes: Seq[String], promotion: Promotion): Boolean =
+      promotionCodes.forall { code =>
+        !promotion.notCombinableWith.contains(code) &&
+          !codeToPromotion(code).notCombinableWith.contains(promotion.code)
+      }
+
+    def findSubSequences(promotions: Seq[Promotion], currentPromotion: Seq[String]): Seq[PromotionCombo] = {
+      if (promotions.isEmpty) {
+        Seq(PromotionCombo(currentPromotion))
+      } else {
+        val promotion = promotions.head
+        val restPromotions = promotions.tail
+
+        val combosWithCurrent = if (canCombine(currentPromotion, promotion)) {
+          findSubSequences(restPromotions, currentPromotion :+ promotion.code)
+        } else {
+          Seq.empty
         }
+        val combosWithoutCurrent = findSubSequences(restPromotions, currentPromotion)
+
+        // Combine results from both branches
+        combosWithCurrent ++ combosWithoutCurrent
       }
     }
 
-    val allSubPromotions= allSubsequences(allPromotions)
+    val allCombinableSubSeq = findSubSequences(allPromotions, Seq())
 
-    val filteredSubPromotions = allSubPromotions
-      .filter(canCombine)
-      .filter(_.size > 1) // the assumption here is a promotion that doesn't combine with other promotions shouldn't return at all.
+    val filteredCombos = allCombinableSubSeq.filter(_.promotionCodes.length > 1) // The assumption is the code that doesn't combine with other code shouldn't return at all.
 
-    filteredSubPromotions
-      .filter { subPromotion =>
-        !filteredSubPromotions.exists(anotherPromotion => subPromotion.size < anotherPromotion.size && subPromotion.forall(anotherPromotion.contains))
-      }
-      .map { promotions =>
-        PromotionCombo(promotions.map(_.code))
-      }
+    filteredCombos.foldLeft(Seq.empty[PromotionCombo]) { (acc, comboCodes) =>
+      if (acc.exists(combo => comboCodes.promotionCodes.forall(combo.promotionCodes.contains))) acc
+      else acc :+ comboCodes
+    }
+
   }
 
 
